@@ -1,2 +1,2 @@
 # temporizador
-temporizador con JavaScript
+temporizador hecho con promesas en JavaScript
