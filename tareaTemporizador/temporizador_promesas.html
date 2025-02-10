@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encadenamiento de Promesas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+        }
+        .log {
+            width: 80%;
+            max-width: 600px;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .log p {
+            margin: 10px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .log p:last-child {
+            border-bottom: none;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .timer {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Encadenamiento de Promesas</h1>
+    <div id="timers">
+        <div class="timer" id="timer1">Temporizador 1: 00:00:00</div>
+        <div class="timer" id="timer2">Temporizador 2: 00:00:00</div>
+        <div class="timer" id="timer3">Temporizador 3: 00:00:00</div>
+    </div>
+    <div class="log" id="log"></div>
+<script>
+    function registrarMensaje(mensaje, clase = "") {
+    const registroDiv = document.getElementById("log");
+    const p = document.createElement("p");
+    if (clase) p.classList.add(clase);
+    p.textContent = mensaje;
+    registroDiv.appendChild(p);
+    registroDiv.scrollTop = registroDiv.scrollHeight;
+}
+
+function actualizarTemporizador(id, tiempoRestante) {
+    const elementoTemporizador = document.getElementById(`timer${id}`);
+    const horas = String(Math.floor(tiempoRestante / 3600000)).padStart(2, '0');
+    const minutos = String(Math.floor((tiempoRestante % 3600000) / 60000)).padStart(2, '0');
+    const segundos = String(Math.floor((tiempoRestante % 60000) / 1000)).padStart(2, '0');
+    elementoTemporizador.textContent = `Temporizador ${id}: ${horas}:${minutos}:${segundos}`;
+}
+
+function iniciarTemporizador(id, tiempo) {
+    return new Promise((resolver, rechazar) => {
+        registrarMensaje(`Temporizador ${id} iniciado, durará ${tiempo}ms.`);
+        const inicio = Date.now();
+
+        const intervalo = setInterval(() => {
+            const transcurrido = Date.now() - inicio;
+            const restante = tiempo - transcurrido;
+            if (restante >= 0) {
+                actualizarTemporizador(id, restante);
+            }
+        }, 1000);
+
+        setTimeout(() => {
+            clearInterval(intervalo);
+            if (Math.random() > 0.1) {
+                actualizarTemporizador(id, 0);
+                resolver(`Temporizador ${id} completado`);
+            } else {
+                rechazar(`Error en el temporizador ${id}`);
+            }
+        }, tiempo);
+    });
+}
+
+async function ejecutarTemporizadores() {
+    try {
+        await Promise.all([
+            iniciarTemporizador(1, 10000),
+            iniciarTemporizador(2, 15000),
+            iniciarTemporizador(3, 20000)
+        ]);
+        registrarMensaje("Todos los temporizadores han finalizado.");
+    } catch (error) {
+        registrarMensaje(error, "error");
+    }
+}
+
+ejecutarTemporizadores();
+
+</script>
+
+</body>
+</html>

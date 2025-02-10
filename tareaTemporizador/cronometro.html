@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro con Callback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #timer {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="timer">0</div>
+    <button id="startStopBtn">Iniciar</button>
+    <button id="resetBtn">Poner a cero</button>
+
+    <script>
+        let seconds = 0; // Almacena los segundos transcurridos
+        let interval = null; // Variable para guardar el temporizador
+
+        // Elementos del DOM
+        const timerDisplay = document.getElementById('timer');
+        const startStopBtn = document.getElementById('startStopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Función principal del cronómetro que acepta un callback
+        function cronometro(callback) {
+            if (callback && typeof callback === 'function') {
+                callback(); // Ejecuta la función pasada como callback
+            }
+        }
+
+        // Actualizar el tiempo en pantalla
+        function updateTimer() {
+            timerDisplay.textContent = seconds;
+        }
+
+        // Función para iniciar el cronómetro
+        function startTimer() {
+            if (interval === null) {
+                interval = setInterval(() => {
+                    cronometro(() => {
+                        seconds++;
+                        updateTimer();
+                    });
+                }, 1000);
+                startStopBtn.textContent = 'Detener';
+            } else {
+                // Detener el cronómetro
+                clearInterval(interval);
+                interval = null;
+                startStopBtn.textContent = 'Iniciar';
+            }
+        }
+
+        // Función para reiniciar el cronómetro
+        function resetTimer() {
+            cronometro(() => {
+                clearInterval(interval);
+                interval = null;
+                seconds = 0;
+                updateTimer();
+                startStopBtn.textContent = 'Iniciar';
+            });
+        }
+
+        // Event Listeners para los botones
+        startStopBtn.addEventListener('click', startTimer);
+        resetBtn.addEventListener('click', resetTimer);
+    </script>
+</body>
+</html>

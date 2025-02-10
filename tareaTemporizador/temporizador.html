@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encadenamiento de Promesas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+        }
+        .log {
+            width: 80%;
+            max-width: 600px;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .log p {
+            margin: 10px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .log p:last-child {
+            border-bottom: none;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .timer {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Encadenamiento de Promesas</h1>
+    <div id="timers">
+        <div class="timer" id="timer1">Temporizador 1: 00:00:00</div>
+        <div class="timer" id="timer2">Temporizador 2: 00:00:00</div>
+        <div class="timer" id="timer3">Temporizador 3: 00:00:00</div>
+    </div>
+    <div class="log" id="log"></div>
+
+    <script>
+        // Función que muestra mensajes en el log
+        function logMessage(message, className = "") {
+            const logDiv = document.getElementById("log");
+            const p = document.createElement("p");
+            if (className) p.classList.add(className);
+            p.textContent = message;
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight; // Scroll automático hacia abajo
+        }
+
+        // Función que actualiza el temporizador en pantalla
+        function actualizarTemporizador(id, tiempoRestante) {
+            const timerElement = document.getElementById(`timer${id}`);
+            const horas = String(Math.floor(tiempoRestante / 3600000)).padStart(2, '0');
+            const minutos = String(Math.floor((tiempoRestante % 3600000) / 60000)).padStart(2, '0');
+            const segundos = String(Math.floor((tiempoRestante % 60000) / 1000)).padStart(2, '0');
+            timerElement.textContent = `Temporizador ${id}: ${horas}:${minutos}:${segundos}`;
+        }
+
+        // Función que devuelve una promesa con un temporizador
+        function temporizador(id, tiempo) {
+            return new Promise((resolve, reject) => {
+                logMessage(`Temporizador ${id} iniciado, durará ${tiempo}ms.`);
+                const start = Date.now();
+
+                const interval = setInterval(() => {
+                    const elapsed = Date.now() - start;
+                    const remaining = tiempo - elapsed;
+                    if (remaining >= 0) {
+                        actualizarTemporizador(id, remaining);
+                    }
+                }, 1000);
+
+                setTimeout(() => {
+                    clearInterval(interval);
+                    if (Math.random() > 0.1) { // Probabilidad del 90% de que se resuelva correctamente
+                        actualizarTemporizador(id, 0);
+                        logMessage(`Temporizador ${id} finalizado.`, "success");
+                        resolve(`Temporizador ${id} completado`);
+                    } else { // Probabilidad del 10% de que falle
+                        logMessage(`Error en el temporizador ${id}.`, "error");
+                        reject(`Error en el temporizador ${id}`);
+                    }
+                }, tiempo);
+            });
+        }
+
+        // Encadenamiento de promesas
+        temporizador(1, 10000) // 10 segundos
+            .then(() => temporizador(2, 15000)) // 15 segundos
+            .then(() => temporizador(3, 20000)) // 20 segundos
+            .then(() => {
+                logMessage("Todos los temporizadores finalizaron correctamente.", "success");
+            })
+            .catch((error) => {
+                logMessage(error, "error");
+            })
+            .finally(() => {
+                logMessage("Proceso finalizado, independientemente de los errores.");
+            });
+    </script>
+</body>
+</html>
